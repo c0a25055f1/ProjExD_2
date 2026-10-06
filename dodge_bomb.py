@@ -65,6 +65,7 @@ def gameover(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5) #5秒間停止させる
 
+
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
     時間とともに拡大する爆弾の画像リストと加速度リストを生成する関数
