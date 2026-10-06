@@ -106,6 +106,32 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     return kk_dict
 
 
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    爆弾から見て、こうかとんがある方向のベクトルを返す関数
+    引数1 org: 爆弾(org)のRect
+    引数2 dst: こうかとん(dst)のRect
+    引数3 current_xy: 現在の移動ベクトル
+    戻り値: 正規化された方向ベクトル、または計算前のベクトルタプル
+    """
+    #差ベクトルを求める
+    dx = dst.centerx - org.centerx
+    dy = dst.centery - org.centery
+    
+    # 差ベクトルのノルム（距離）を計算する
+    norm = (dx**2 + dy**2) ** 0.5
+    
+    # 距離が300未満だったら、慣性としてcurrent_xyに移動させる
+    if norm < 300:
+        return current_xy
+        
+    # 差ベクトルのノルムが√50になるように正規化する
+    vx = (dx / norm) * (50 ** 0.5)
+    vy = (dy / norm) * (50 ** 0.5)
+    
+    return vx, vy
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -113,11 +139,11 @@ def main():
     
     kk_imgs = get_kk_imgs()
     bb_imgs, bb_accs = init_bb_imgs()
-
+    
     kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-
+    
     bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
@@ -133,10 +159,12 @@ def main():
                 return
         screen.blit(bg_img, [0, 0])
 
+        # 衝突判定
         if kk_rct.colliderect(bb_rct):
             gameover(screen)
             return    
 
+        # キー入力とこうかとんの移動
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         for k, tpl in DELTA.items():
@@ -144,19 +172,23 @@ def main():
                 sum_mv[0] += tpl[0]
                 sum_mv[1] += tpl[1] 
         kk_rct.move_ip(sum_mv)
-
+        
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
-
+            
         kk_img = kk_imgs[tuple(sum_mv)]
 
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
+
+       
         avx = vx * bb_accs[min(tmr//500, 9)]
         avy = vy * bb_accs[min(tmr//500, 9)]
         bb_img = bb_imgs[min(tmr//500, 9)]
-
+        
+        # Surfaceの大きさが変わった場合、Rectの幅と高さを更新
         bb_rct.width = bb_img.get_rect().width
         bb_rct.height = bb_img.get_rect().height
-
+        
         bb_rct.move_ip(avx, avy)
         yoko, tate = check_bound(bb_rct)
         if not yoko:
