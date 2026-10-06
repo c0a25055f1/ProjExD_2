@@ -4,6 +4,7 @@ import time
 import pygame as pg
 import random
 
+
 WIDTH, HEIGHT = 1100, 650
 DELTA = {
     pg.K_UP: (0, -5),
@@ -49,7 +50,7 @@ def gameover(screen: pg.Surface) -> None:
     bg_surface.blit(text, text_rct)
     
     # 泣いているこうかとん画像をロードし、左右に配置
-    kk_img = pg.image.load("fig/8.png")
+    kk_img = pg.image.load("fig/9.png")
     kk_img = pg.transform.rotozoom(kk_img, 0, 0.9)
     
     kk_rct_left = kk_img.get_rect()
@@ -62,8 +63,7 @@ def gameover(screen: pg.Surface) -> None:
     
     screen.blit(bg_surface, [0, 0])
     pg.display.update()
-    time.sleep(5)
-
+    time.sleep(5) #5秒間停止させる
 
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
@@ -87,7 +87,7 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
     移動量タプルと対応する画像Surfaceの辞書を生成する関数
     引数: なし
-    戻り値: 押下キーに対する移動量の合計値タプルをキー、rotozoomしたSurfaceを値とする辞書
+    戻り値: 押下キーに対する移動量の合計値タプルをキー、rotozoomしたSurfaceの値
     """
     base_img = pg.image.load("fig/3.png")
     flip_img = pg.transform.flip(base_img, True, False)
@@ -125,7 +125,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]
     if norm < 300:
         return current_xy
         
-    # 差ベクトルのノルムが√50になるように正規化する
+    # 差ベクトルのノルムを正規化
     vx = (dx / norm) * (50 ** 0.5)
     vy = (dy / norm) * (50 ** 0.5)
     
@@ -164,7 +164,6 @@ def main():
             gameover(screen)
             return    
 
-        # キー入力とこうかとんの移動
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         for k, tpl in DELTA.items():
